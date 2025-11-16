@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>FutBetLages - Apostas de Futebol</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>FutBetLages - Apostas de Futebol</h1>
+  <p>Valor mínimo de aposta: R$0,25 | Valor máximo: R$2,00</p>
+  
+  <div id="loading">Carregando jogos...</div>
+  
+  <form id="apostas-form">
+    <table id="jogos-tabela">
+      <thead>
+        <tr>
+          <th>Jogo</th>
+          <th>Casa (odd)</th>
+          <th>Empate (odd)</th>
+          <th>Fora (odd)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    
+    <label>Valor da aposta (R$):
+      <input type="number" id="valor-aposta" min="0.25" max="2" step="0.01" value="0.25" required />
+    </label>
+    <div>Possível ganho: R$ <span id="possivel-ganho">0.00</span></div>
+    <button type="submit" id="finaliza">Finalizar Aposta</button>
+  </form>
+  
+  <div id="resultado" style="display:none;">
+    <h2>Aposta registrada!</h2>
+    <p>Código do bilhete: <b id="codigo-bilhete"></b></p>
+    <p>PIX para pagamento: <b>061.225.274-40</b></p>
+    <p>Ganho potencial: R$ <span id="ganho-final"></span></p>
+  </div>
+
+  <hr>
+
+  <h2>Verificar Bilhete</h2>
+  <form id="verifica-form">
+    <label>Digite o código do bilhete:
+      <input type="text" id="codigo-input" />
+    </label>
+    <button type="submit">Verificar</button>
+  </form>
+  <div id="verificaResultado"></div>
+
+  <script>
+    // (Seu script aqui, sem alteração)
+
+    const jogos = [
+      { id: 1, casa: { nome: "Botafogo" }, fora: { nome: "Sport" }, placar: { data: "2025-11-18T20:30:00" }, odds: { casa: 2.20, empate: 3.20, fora: 3.10 } },
+      { id: 2, casa: { nome: "Fluminense" }, fora: { nome: "Flamengo" }, placar: { data: "2025-11-19T21:30:00" }, odds: { casa: 3.10, empate: 3.15, fora: 2.40 } },
+      { id: 3, casa: { nome: "Santos" }, fora: { nome: "Mirassol" }, placar: { data: "2025-11-19T21:30:00" }, odds: { casa: 1.95, empate: 3.30, fora: 3.75 } },
+      { id: 4, casa: { nome: "Grêmio" }, fora: { nome: "Vasco" }, placar: { data: "2025-11-19T21:30:00" }, odds: { casa: 2.05, empate: 3.20, fora: 3.50 } },
+      { id: 5, casa: { nome: "Juventude" }, fora: { nome: "Cruzeiro" }, placar: { data: "2025-11-20T16:00:00" }, odds: { casa: 2.55, empate: 3.10, fora: 2.85 } },
+      { id: 6, casa: { nome: "Bahia" }, fora: { nome: "Fortaleza" }, placar: { data: "2025-11-20T18:00:00" }, odds: { casa: 2.40, empate: 3.25, fora: 2.75 } },
+      { id: 7, casa: { nome: "Corinthians" }, fora: { nome: "São Paulo" }, placar: { data: "2025-11-20T19:30:00" }, odds: { casa: 2.15, empate: 3.10, fora: 3.15 } },
+      { id: 8, casa: { nome: "Ceará" }, fora: { nome: "Internacional" }, placar: { data: "2025-11-20T21:30:00" }, odds: { casa: 2.75, empate: 3.20, fora: 2.40 } },
+      { id: 9, casa: { nome: "RB Bragantino" }, fora: { nome: "Vitória" }, placar: { data: "A definir" }, odds: { casa: 2.30, empate: 3.40, fora: 3.00 } },
+      { id: 10, casa: { nome: "Atlético-MG" }, fora: { nome: "Palmeiras" }, placar: { data: "A definir" }, odds: { casa: 2.15, empate: 3.20, fora: 3.15 } }
+    ];
+
+    const jogosTabelaBody = document.querySelector('#jogos-tabela tbody');
+    const loadingDiv = document.getElementById('loading');
+    const apostasForm = document.getElementById('apostas-form');
+    const valorApostaInput = document.getElementById('valor-aposta');
+    const resultadoDiv = document.getElementById('resultado');
+    const codigoBilheteSpan = document.getElementById('codigo-bilhete');
+    const ganhoFinalSpan = document.getElementById('ganho-final');
+    const possivelGanhoSpan = document.getElementById('possivel-ganho');
+
+    const verificaForm = document.getElementById('verifica-form');
+    const codigoInput = document.getElementById('codigo-input');
+    const verificaResultado = document.getElementById('verificaResultado');
+
+    let apostas = {};
+
+    function criaLinhaJogo(jogo) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${jogo.casa.nome} x ${jogo.fora.nome}<br><small>${new Date(jogo.placar.data).toLocaleString()}</small></td>
+        <td class="odds-btn" data-id="${jogo.id}" data-aposta="casa">${jogo.odds.casa.toFixed(2)}</td>
+        <td class="odds-btn" data-id="${jogo.id}" data-aposta="empate">${jogo.odds.empate.toFixed(2)}</td>
+        <td class="odds-btn" data-id="${jogo.id}" data-aposta="fora">${jogo.odds.fora.toFixed(2)}</td>
+      `;
+      tr.querySelectorAll('.odds-btn').forEach(cell => {
+        cell.style.cursor = 'pointer';
+        cell.addEventListener('click', () => {
+          apostas[jogo.id] = cell.getAttribute('data-aposta');
+          atualizaSelecao();
+        });
+      });
+      return tr;
+    }
+
+    function atualizaSelecao() {
+      document.querySelectorAll('.odds-btn').forEach(cell => {
+        const partidaId = cell.getAttribute('data-id');
+        const aposta = cell.getAttribute('data-aposta');
+        if (apostas[partidaId] === aposta) {
+          cell.classList.add('selected');
+        } else {
+          cell.classList.remove('selected');
+        }
+      });
+      calculaGanhoPossivel();
+    }
+
+    function calculaGanhoPossivel() {
+      const valor = parseFloat(valorApostaInput.value);
+      if (isNaN(valor) || valor < 0.25 || valor > 2) {
+        possivelGanhoSpan.textContent = '0.00';
+        return;
+      }
+      let oddTotal = 1;
+      for (const [id, aposta] of Object.entries(apostas)) {
+        const jogo = jogos.find(j => j.id == id);
+        if (!jogo) continue;
+        oddTotal *= jogo.odds[aposta];
+      }
+      const ganho = valor * oddTotal;
+      possivelGanhoSpan.textContent = ganho.toFixed(2);
+      return ganho;
+    }
+
+    function geraCodigoBilhete() {
+      return 'FBL-' + Date.now() + '-' + Math.floor(Math.random() * 9999);
+    }
+
+    function salvarAposta(codigo, dados) {
+      let apostasSalvas = JSON.parse(localStorage.getItem('futbetlages_apostas') || '{}');
+      apostasSalvas[codigo] = dados;
+      localStorage.setItem('futbetlages_apostas', JSON.stringify(apostasSalvas));
+    }
+
+    function carregarJogos() {
+      loadingDiv.style.display = 'none';
+      jogosTabelaBody.innerHTML = '';
+      jogos.forEach(jogo => {
+        const linha = criaLinhaJogo(jogo);
+        jogosTabelaBody.appendChild(linha);
+      });
+    }
+
+    apostasForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const valor = parseFloat(valorApostaInput.value);
+      if (valor < 0.25 || valor > 2) {
+        alert('Valor da aposta deve ser entre R$0,25 e R$2,00');
+        return;
+      }
+      if (Object.keys(apostas).length === 0) {
+        alert('Selecione pelo menos uma aposta.');
+        return;
+      }
+      const ganho = calculaGanhoPossivel();
+      const codigo = geraCodigoBilhete();
+      const dadosAposta = {
+        apostas,
+        valor,
+        ganho,
+        data: new Date().toISOString()
+      };
+      salvarAposta(codigo, dadosAposta);
+      codigoBilheteSpan.textContent = codigo;
+      ganhoFinalSpan.textContent = ganho.toFixed(2);
+      resultadoDiv.style.display = 'block';
+
+      apostas = {};
+      apostasForm.reset();
+      possivelGanhoSpan.textContent = '0.00';
+      carregarJogos();
+    });
+
+    verificaForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const codigo = codigoInput.value.trim();
+      if (!codigo) {
+        verificaResultado.innerHTML = '<p style="color:red;">Digite um código válido.</p>';
+        return;
+      }
+      let apostasSalvas = JSON.parse(localStorage.getItem('futbetlages_apostas') || '{}');
+      const aposta = apostasSalvas[codigo];
+      if (!aposta) {
+        verificaResultado.innerHTML = '<p style="color:red;">Bilhete não encontrado.</p>';
+        return;
+      }
+      let html = `<p><b>Data:</b> ${new Date(aposta.data).toLocaleString()}</p>`;
+      html += `<p><b>Valor Apostado:</b> R$${aposta.valor.toFixed(2)}</p>`;
+      html += `<p><b>Ganho Potencial:</b> R$${aposta.ganho.toFixed(2)}</p>`;
+      html += '<ul>';
+      for (const [id, escolha] of Object.entries(aposta.apostas)) {
+        const jogo = jogos.find(j => j.id == id);
+        if (!jogo) continue;
+        html += `<li>${jogo.casa.nome} x ${jogo.fora.nome} - Aposta em <b>${escolha}</b> com odd ${jogo.odds[escolha].toFixed(2)}</li>`;
+      }
+      html += '</ul>';
+      verificaResultado.innerHTML = html;
+    });
+
+    carregarJogos();
+  </script>
+</body>
+</html>

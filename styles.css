@@ -1,0 +1,158 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 900px;
+  margin: 20px auto;
+  background-color: #0d47a1;
+  color: #f0f0f0;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  font-size: 1.2rem;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #bbdefb;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 20px;
+  background-color: #1565c0;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+}
+
+th, td {
+  border: none;
+  padding: 15px 10px;
+  text-align: center;
+  color: #e3f2fd;
+  font-weight: 600;
+}
+
+thead th {
+  background: #42a5f5;
+  font-size: 1.1rem;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #1e88e5;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #1976d2;
+}
+
+button {
+  padding: 14px 28px;
+  margin-top: 15px;
+  background-color: transparent;
+  border: 3px solid #bbdefb;
+  color: #bbdefb;
+  font-weight: 700;
+  font-size: 1.2rem;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  user-select: none;
+  width: 100%;
+  max-width: 320px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+button:hover {
+  background-color: #bbdefb;
+  color: #0d47a1;
+  border-color: #90caf9;
+}
+
+.odds-btn {
+  cursor: pointer;
+  background: #1e88e5;
+  border: 2px solid #64b5f6;
+  color: #e3f2fd;
+  font-weight: 700;
+  border-radius: 15px;
+  padding: 10px 16px;
+  font-size: 1.1rem;
+  transition: background-color 0.3s ease;
+  user-select: none;
+  min-width: 90px;
+}
+
+.odds-btn:hover {
+  background-color: #64b5f6;
+}
+
+.selected {
+  background-color: #4caf50 !important;
+  color: white !important;
+  border-color: #388e3c !important;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: 700;
+  color: #bbdefb;
+  font-size: 1.15rem;
+}
+
+input[type="number"], input[type="text"] {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  font-size: 1.2rem;
+}
+
+#resultado, #verificaResultado {
+  margin-top: 25px;
+  padding: 20px;
+  border: 3px solid #4caf50;
+  background-color: #1b5e20;
+  border-radius: 18px;
+  font-weight: 700;
+  color: #c8e6c9;
+  font-size: 1.2rem;
+}
+
+hr {
+  margin: 40px 0;
+  border: 2px solid #64b5f6;
+  border-radius: 3px;
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 15px;
+    font-size: 1rem;
+  }
+
+  button {
+    padding: 12px 20px;
+    font-size: 1rem;
+    max-width: 100%;
+  }
+
+  .odds-btn {
+    min-width: 70px;
+    padding: 8px 12px;
+    font-size: 1rem;
+  }
+
+  input[type="number"], input[type="text"] {
+    font-size: 1rem;
+    padding: 10px;
+  }
+}
